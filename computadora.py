@@ -1,6 +1,7 @@
 # -*- coding: cp1252 -*-
 import simpy
 import random
+import math
 
 RANDOM_SEED = 42
 NUEVOS_PROCESOS = 10
@@ -40,18 +41,20 @@ def proceso(env, nombre, CPU, memoriaRAM, inputOutput, memoria, instrucciones):
 
                 if (instrucciones-3)<0:
                     terminated=env.now
-                    tiempoTot=tiempoTot +(terminated-creacion)
+                    tiempoProceso=terminated-creacion
+                    tiempoTot=tiempoTot +tiempoProceso
                     print('%s termino en %s' % (nombre, terminated))
                     memoriaRAM.put(memoria)
                     instrucciones=0
                 else:
                     instrucciones=instrucciones-3
                     if random.randint(0,1)== 0:
-                        yield inputOutput.request()
-                        print(' %s empezo proceso I/O en %s' % (nombre, env.now))
-                        tib = random.randint(1, TIEMPO_IO)
-                        yield env.timeout(tib)
-                        print(' %s termino proceso I/O en %s' % (nombre, env.now))
+                        with inputOutput.request() as req2:
+                            yield req2
+                            print(' %s empezo proceso I/O en %s' % (nombre, env.now))
+                            tib = random.randint(1, TIEMPO_IO)
+                            yield env.timeout(tib)
+                            print(' %s termino proceso I/O en %s' % (nombre, env.now))
                     
 def source(env, numero, intervalo, CPU, inputOutput, memoriaRAM):
     global INSTRUCCIONES_MAX 
@@ -69,9 +72,13 @@ env = simpy.Environment()
 CPU = simpy.Resource(env, capacity=1)
 inputOutput = simpy.Resource(env, capacity=1)
 memoriaRAM =simpy.Container(env, 100, init=100)
-env.process(source(env, 10, INTERVALO_PROCESOS, CPU, inputOutput, memoriaRAM))
+env.process(source(env, NUEVOS_PROCESOS, INTERVALO_PROCESOS, CPU, inputOutput, memoriaRAM))
 env.run()
+
+promedio=tiempoTot/NUEVOS_PROCESOS
+
 
 print('=====================================================')
 print('La computadora se tardó %s unidades de tiempo en terminar la cola de procesos' % (tiempoTot))
+print ('El promedio de tiempo por operacion es de: %s unidades de tiempo' % (promedio))
 print('=====================================================')
