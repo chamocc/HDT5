@@ -1,10 +1,12 @@
 # -*- coding: cp1252 -*-
+#Daniel Gerendas 13158
+#Edgar Chamo 13083
 import simpy
 import random
 import math
 
 RANDOM_SEED = 42
-NUEVOS_PROCESOS = 10
+NUEVOS_PROCESOS = 25
 INTERVALO_PROCESOS = 3.0
 global TIEMPO_PROCESO #tiempo que dedica el CPU a cada proceso
 TIEMPO_PROCESO = 2
@@ -71,7 +73,7 @@ env = simpy.Environment()
 # Start processes and run
 CPU = simpy.Resource(env, capacity=1)
 inputOutput = simpy.Resource(env, capacity=1)
-memoriaRAM =simpy.Container(env, 100, init=100)
+memoriaRAM =simpy.Container(env, 10000, init=10000)
 env.process(source(env, NUEVOS_PROCESOS, INTERVALO_PROCESOS, CPU, inputOutput, memoriaRAM))
 env.run()
 
